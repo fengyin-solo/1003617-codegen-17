@@ -2,7 +2,7 @@ import { SEED_ROWS } from './seed'
 import type { EntryRow } from './types'
 
 // 本地持久化：数据放在 localStorage 里，刷新、关掉再打开都还在。
-const STORAGE_KEY = 'forest-fire-patrol:entries'
+export const STORAGE_KEY = 'forest-fire-patrol:entries'
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -20,6 +20,7 @@ function readStorage(): Record<string, EntryRow[]> {
   }
   try {
     const parsed = JSON.parse(raw) as Record<string, EntryRow[]>
+    // 以种子模块为底合并：新增的台账键旧浏览器里没有时也能补进来。
     return { ...fallback, ...parsed }
   } catch {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback))
@@ -45,6 +46,25 @@ export function saveRows(key: string, rows: EntryRow[]): void {
   cache = next
   if (typeof window !== 'undefined' && window.localStorage) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  }
+}
+
+// 演练筹备提交会同时写演练、队伍、装备、排班、道路和三本联动台账：
+// 要么所有模块一起生效，要么保留提交前快照整体回退，不允许留下半套数据。
+export function commitAll(changes: Record<string, EntryRow[]>): void {
+  const snapshot = allRows()
+  const next = { ...snapshot, ...changes }
+  cache = next
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    }
+  } catch (error) {
+    cache = snapshot
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+    }
+    throw new Error(`数据落库失败，已整体回退：${error instanceof Error ? error.message : '未知错误'}`)
   }
 }
 
