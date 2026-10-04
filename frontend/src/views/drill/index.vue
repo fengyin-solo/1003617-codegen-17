@@ -6,10 +6,14 @@
         <p class="page-desc">维护应急演练，围绕演练编号、演练主题、参演队伍、演练日期做登记、筛选与状态流转。</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" type="button" @click="openCreate">登记应急演练</button>
+        <RouterLink class="btn primary" to="/drill/batch">新增应急演练筹备批次</RouterLink>
         <button class="btn" type="button" @click="exportRows">导出应急演练清单</button>
       </div>
     </header>
+
+    <p class="status-legend">
+      <span class="legend-item">说明：下表为演练台账，历史演练记录保持原主题，筹备批次提交后只在此追加新记录，不回改历史。</span>
+    </p>
 
     <div class="stat-row">
       <article v-for="item in stats" :key="item.label" class="stat-card">
@@ -106,10 +110,6 @@ function resetFilters() {
 
 function exportRows() {
   downloadEntries(meta.key)
-}
-
-function openCreate() {
-  errorMessage.value = '应急演练登记入口尚未接入审批流'
 }
 
 function runAction(action: string, row: EntryRow) {

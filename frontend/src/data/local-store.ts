@@ -36,6 +36,11 @@ export function allRows(): Record<string, EntryRow[]> {
   return cache
 }
 
+/** 供事务层整包写回后同步内存缓存，避免 localStorage 已更新但页面仍读旧快照。 */
+export function syncEntriesCache(next: Record<string, EntryRow[]>): void {
+  cache = next
+}
+
 export function listRows(key: string): EntryRow[] {
   return allRows()[key] ?? []
 }
